@@ -19,3 +19,5 @@ captures
 node_modules/
 /Images/
 /vid/
+*.keystore
+*.jks

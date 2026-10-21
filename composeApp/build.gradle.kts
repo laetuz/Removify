@@ -2,6 +2,16 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 val appVersion = (System.getenv("GITHUB_REF_NAME") ?: "0.1.0").removePrefix("v")
 val desktopPackageVersion = "1.0.0"
+val buildNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+
+val keystoreFile = System.getenv("RELEASE_KEYSTORE_FILE")
+val keystorePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+val releaseKeyAlias = System.getenv("RELEASE_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+val hasReleaseSigning = !keystoreFile.isNullOrBlank() &&
+    !keystorePassword.isNullOrBlank() &&
+    !releaseKeyAlias.isNullOrBlank() &&
+    !releaseKeyPassword.isNullOrBlank()
 
 val osName = System.getProperty("os.name").lowercase()
 val osArch = System.getProperty("os.arch")
@@ -77,8 +87,28 @@ android {
         applicationId = "id.neotica.removify"
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
+        versionCode = buildNumber
         versionName = appVersion
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(keystoreFile!!)
+                storePassword = keystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+            isMinifyEnabled = false
+        }
     }
 
     buildFeatures {
