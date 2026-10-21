@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       HAS_SIGNING: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' }}
-      RELEASE_KEYSTORE_FILE: ${{ runner.temp }}/release.keystore
+      RELEASE_KEYSTORE_FILE: ${{ github.workspace }}/release.keystore
       RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
       RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
       RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
