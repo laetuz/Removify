@@ -1,5 +1,17 @@
 package id.neotica.removify.platform
 
-actual fun hasMediaPermission(): Boolean = true
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 
-actual suspend fun requestMediaPermission(): Boolean = true
+actual fun hasMediaPermission(): Boolean {
+    val context = AndroidAppContext.appContext ?: return false
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        context.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED &&
+            context.checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED
+    } else {
+        context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+    }
+}
+
+actual suspend fun requestMediaPermission(): Boolean = hasMediaPermission()
