@@ -2,6 +2,8 @@ package id.neotica.removify.utils
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class ExportNamingTest {
 
@@ -37,5 +39,15 @@ class ExportNamingTest {
     @Test
     fun handlesNamesWithoutExtension() {
         assertEquals("backup (1)", ExportNaming.uniqueName("backup", setOf("backup")))
+    }
+
+    @Test
+    fun detectsInternalDcimDestinations() {
+        assertTrue(ExportNaming.isForbiddenDcimTree("primary:DCIM"))
+        assertTrue(ExportNaming.isForbiddenDcimTree("primary:DCIM/Camera"))
+        assertTrue(ExportNaming.isForbiddenDcimTree("primary:dcim/Backup"))
+        assertFalse(ExportNaming.isForbiddenDcimTree("primary:Pictures"))
+        assertFalse(ExportNaming.isForbiddenDcimTree("primary:"))
+        assertFalse(ExportNaming.isForbiddenDcimTree("1234-ABCD:DCIM"))
     }
 }

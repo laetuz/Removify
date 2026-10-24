@@ -19,4 +19,8 @@ actual fun savedDcimDestinationName(): String? = null
 
 actual fun saveDcimDestination(uri: String, name: String?) {}
 
+actual fun clearDcimDestination() {}
+
 actual fun dcimDestinationDisplayName(treeUri: String): String? = null
+
+actual fun dcimDestinationError(treeUri: String): String? = null

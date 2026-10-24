@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import id.neotica.removify.domain.model.DcimCopyResult
 import id.neotica.removify.domain.model.DcimExportReport
 import id.neotica.removify.domain.repository.DcimExportRepository
+import id.neotica.removify.platform.clearDcimDestination
 import id.neotica.removify.platform.dcimDestinationDisplayName
+import id.neotica.removify.platform.dcimDestinationError
 import id.neotica.removify.platform.hasMediaPermission
 import id.neotica.removify.platform.saveDcimDestination
 import id.neotica.removify.platform.savedDcimDestinationName
@@ -20,11 +22,14 @@ class DcimExportViewModel(
     private val repository: DcimExportRepository,
 ) : ViewModel() {
 
+    private val savedDestinationUri = savedDcimDestinationUri()
+    private val savedDestinationError = savedDestinationUri?.let { dcimDestinationError(it) }
+
     private val _state = MutableStateFlow(
         DcimExportUiState(
             hasPermission = hasMediaPermission(),
-            destinationUri = savedDcimDestinationUri(),
-            destinationName = savedDcimDestinationName(),
+            destinationUri = savedDestinationUri.takeIf { savedDestinationError == null },
+            destinationName = savedDcimDestinationName().takeIf { savedDestinationError == null },
         ),
     )
     val state: StateFlow<DcimExportUiState> = _state.asStateFlow()
@@ -33,6 +38,7 @@ class DcimExportViewModel(
     private var lastCopyResult: DcimCopyResult? = null
 
     init {
+        if (savedDestinationError != null) clearDcimDestination()
         if (_state.value.hasPermission) refresh()
     }
 
@@ -72,6 +78,12 @@ class DcimExportViewModel(
     }
 
     fun onDestinationPicked(treeUri: String) {
+        val error = dcimDestinationError(treeUri)
+        if (error != null) {
+            _state.update { it.copy(errorMessage = error) }
+            return
+        }
+
         val name = dcimDestinationDisplayName(treeUri) ?: treeUri
         saveDcimDestination(treeUri, name)
         _state.update {
@@ -83,12 +95,32 @@ class DcimExportViewModel(
         }
     }
 
+    fun toggleImages() {
+        _state.update {
+            it.copy(
+                includeImages = !it.includeImages,
+                report = null,
+                errorMessage = null,
+            )
+        }
+    }
+
+    fun toggleVideos() {
+        _state.update {
+            it.copy(
+                includeVideos = !it.includeVideos,
+                report = null,
+                errorMessage = null,
+            )
+        }
+    }
+
     fun requestMove() {
         val current = _state.value
         if (current.isExporting) return
 
-        if (current.items.isEmpty()) {
-            _state.update { it.copy(errorMessage = "No DCIM media to move") }
+        if (current.selectedItems.isEmpty()) {
+            _state.update { it.copy(errorMessage = "Select photos or videos to move") }
             return
         }
         if (current.destinationUri == null) {
@@ -108,7 +140,8 @@ class DcimExportViewModel(
     fun confirmMove() {
         val current = _state.value
         val destination = current.destinationUri ?: return
-        if (current.isExporting || current.items.isEmpty()) return
+        val selected = current.selectedItems
+        if (current.isExporting || selected.isEmpty()) return
 
         cancelRequested.value = false
         _state.update {
@@ -123,7 +156,7 @@ class DcimExportViewModel(
 
         viewModelScope.launch {
             repository.copyToTree(
-                items = current.items,
+                items = selected,
                 treeUri = destination,
                 shouldCancel = { cancelRequested.value },
                 onProgress = { progress ->

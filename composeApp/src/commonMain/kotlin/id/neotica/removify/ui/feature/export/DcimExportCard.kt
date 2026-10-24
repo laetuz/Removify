@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -90,6 +91,26 @@ private fun DcimExportCardContent(viewModel: DcimExportViewModel) {
                         text = "${state.photoCount} photos  \u00B7  ${state.videoCount} videos  \u00B7  ${formatBytes(state.totalBytes)}",
                         style = MaterialTheme.typography.titleSmall,
                     )
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = state.includeImages,
+                            onClick = viewModel::toggleImages,
+                            label = { Text(text = "Photos ${state.photoCount}") },
+                        )
+                        FilterChip(
+                            selected = state.includeVideos,
+                            onClick = viewModel::toggleVideos,
+                            label = { Text(text = "Videos ${state.videoCount}") },
+                        )
+                    }
+
+                    Text(
+                        text = "Selected: ${state.selectedCount} items (${formatBytes(state.selectedBytes)})",
+                        color = TransparentText40,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+
                     Text(
                         text = "Destination: ${state.destinationName ?: "not selected"}",
                         color = TransparentText40,
@@ -100,7 +121,7 @@ private fun DcimExportCardContent(viewModel: DcimExportViewModel) {
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ButtonBasic(text = "Choose folder", onClick = folderPicker)
-                        if (state.items.isNotEmpty() &&
+                        if (state.selectedItems.isNotEmpty() &&
                             state.destinationUri != null &&
                             !state.isExporting &&
                             !state.awaitingDeleteApproval
@@ -174,7 +195,7 @@ private fun DcimExportCardContent(viewModel: DcimExportViewModel) {
             title = { Text(text = "Move to external storage?") },
             text = {
                 Text(
-                    text = "${state.items.size} items (${formatBytes(state.totalBytes)}) will be copied to ${state.destinationName ?: "the selected folder"}. Originals are deleted only after each file is verified.",
+                    text = "${state.selectedCount} items (${formatBytes(state.selectedBytes)}) will be copied to ${state.destinationName ?: "the selected folder"}. Originals are deleted only after each file is verified.",
                 )
             },
             confirmButton = {

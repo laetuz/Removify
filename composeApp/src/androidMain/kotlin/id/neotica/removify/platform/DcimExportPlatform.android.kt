@@ -17,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.documentfile.provider.DocumentFile
+import android.provider.DocumentsContract
+import id.neotica.removify.utils.ExportNaming
 
 private const val PREFS_NAME = "removify_dcim_export"
 private const val KEY_TREE_URI = "tree_uri"
@@ -107,9 +109,31 @@ actual fun saveDcimDestination(uri: String, name: String?) {
         ?.apply()
 }
 
+actual fun clearDcimDestination() {
+    prefs()?.edit()
+        ?.remove(KEY_TREE_URI)
+        ?.remove(KEY_DISPLAY_NAME)
+        ?.apply()
+}
+
 actual fun dcimDestinationDisplayName(treeUri: String): String? {
     val context = AndroidAppContext.appContext ?: return null
     return runCatching {
         DocumentFile.fromTreeUri(context, Uri.parse(treeUri))?.name
     }.getOrNull()
+}
+
+actual fun dcimDestinationError(treeUri: String): String? {
+    val uri = Uri.parse(treeUri)
+    if (uri.authority != "com.android.externalstorage.documents") return null
+
+    val documentId = runCatching {
+        DocumentsContract.getTreeDocumentId(uri)
+    }.getOrNull() ?: return null
+
+    return if (ExportNaming.isForbiddenDcimTree(documentId)) {
+        "Choose a folder outside DCIM on internal storage (otherwise files are copied onto themselves)."
+    } else {
+        null
+    }
 }

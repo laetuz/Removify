@@ -31,4 +31,13 @@ object ExportNaming {
             index++
         }
     }
+
+    fun isForbiddenDcimTree(documentId: String): Boolean {
+        val volume = documentId.substringBefore(':', missingDelimiterValue = "")
+        val path = documentId.substringAfter(':', missingDelimiterValue = "").trim('/')
+        if (!volume.equals("primary", ignoreCase = true)) return false
+
+        val segments = path.split('/').filter { it.isNotBlank() }
+        return segments.firstOrNull()?.equals("DCIM", ignoreCase = true) == true
+    }
 }

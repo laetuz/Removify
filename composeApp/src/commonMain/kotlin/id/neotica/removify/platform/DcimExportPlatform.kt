@@ -19,4 +19,8 @@ expect fun savedDcimDestinationName(): String?
 
 expect fun saveDcimDestination(uri: String, name: String?)
 
+expect fun clearDcimDestination()
+
 expect fun dcimDestinationDisplayName(treeUri: String): String?
+
+expect fun dcimDestinationError(treeUri: String): String?
