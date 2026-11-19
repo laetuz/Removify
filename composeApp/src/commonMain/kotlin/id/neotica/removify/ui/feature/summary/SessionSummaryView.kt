@@ -16,8 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import id.neotica.removify.platform.isTrashCommitSupported
 import id.neotica.removify.session.SessionStore
 import id.neotica.removify.ui.components.ButtonBasic
+import id.neotica.removify.ui.components.NegativePrimary
 import id.neotica.removify.ui.components.NeoCard
 import id.neotica.removify.ui.components.TransparentText40
 import id.neotica.removify.utils.formatBytes
@@ -63,9 +65,21 @@ fun SessionSummaryView(
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
-                        text = "Moved to Trash: ${summary.trashCount} (${formatBytes(summary.trashBytes)})",
+                        text = if (isTrashCommitSupported) {
+                            "Moved to Trash: ${summary.trashCount} (${formatBytes(summary.trashBytes)})"
+                        } else {
+                            "Marked for Trash: ${summary.trashCount} (${formatBytes(summary.trashBytes)})"
+                        },
                         style = MaterialTheme.typography.titleMedium,
                     )
+                    if (!isTrashCommitSupported && summary.trashCount > 0) {
+                        Text(
+                            text = "Android trash isn't available yet - these files were not moved.",
+                            color = NegativePrimary,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                     Text(
                         text = "Skipped: ${summary.skippedCount}",
                         style = MaterialTheme.typography.titleMedium,

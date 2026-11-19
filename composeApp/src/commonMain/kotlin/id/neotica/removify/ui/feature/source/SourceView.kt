@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import id.neotica.removify.platform.rememberSourceFolderPicker
 import id.neotica.removify.ui.components.ButtonBasic
 import id.neotica.removify.ui.components.DarkPrimary
 import id.neotica.removify.ui.components.NegativePrimary
@@ -30,6 +31,7 @@ fun SourceView(
     viewModel: SourceViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val folderPicker = rememberSourceFolderPicker(viewModel::onFolderPicked)
 
     Box(
         modifier = Modifier
@@ -50,14 +52,14 @@ fun SourceView(
                     style = MaterialTheme.typography.headlineSmall,
                 )
                 Text(
-                    text = "Pick a folder on desktop to start a swipe session. Android gallery support arrives in M1.",
+                    text = "Pick a folder on your device (USB drive, SD card, or cloud) to start a swipe session.",
                     color = TransparentText40,
                     textAlign = TextAlign.Center,
                 )
 
-                state.folderPath?.let { path ->
+                state.folderName?.let { name ->
                     Text(
-                        text = path,
+                        text = name,
                         color = TransparentText40,
                         style = MaterialTheme.typography.bodySmall,
                         textAlign = TextAlign.Center,
@@ -85,7 +87,7 @@ fun SourceView(
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    ButtonBasic(text = "Choose folder", onClick = viewModel::chooseFolder)
+                    ButtonBasic(text = "Choose folder", onClick = folderPicker)
                     if (state.mediaCount > 0) {
                         ButtonBasic(text = "Continue", onClick = onContinue)
                     }

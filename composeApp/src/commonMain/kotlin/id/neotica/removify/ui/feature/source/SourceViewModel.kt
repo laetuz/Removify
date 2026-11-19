@@ -4,7 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.neotica.removify.domain.model.MediaSource
 import id.neotica.removify.domain.repository.MediaRepository
-import id.neotica.removify.platform.pickFolder
+import id.neotica.removify.platform.clearSourceFolder
+import id.neotica.removify.platform.displayNameForPickedFolder
+import id.neotica.removify.platform.mediaSourceForPickedLocation
+import id.neotica.removify.platform.saveSourceFolder
+import id.neotica.removify.platform.savedSourceFolderName
+import id.neotica.removify.platform.savedSourceFolderUri
 import id.neotica.removify.session.SessionStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,24 +25,40 @@ class SourceViewModel(
     private val _state = MutableStateFlow(SourceUiState())
     val state: StateFlow<SourceUiState> = _state.asStateFlow()
 
-    fun chooseFolder() {
-        viewModelScope.launch {
-            val path = pickFolder() ?: return@launch
-            loadFolder(path)
+    init {
+        val savedUri = savedSourceFolderUri()
+        if (savedUri != null) {
+            val name = savedSourceFolderName()
+                ?: displayNameForPickedFolder(savedUri)
+                ?: savedUri
+            load(
+                source = mediaSourceForPickedLocation(savedUri),
+                displayName = name,
+                fromSaved = true,
+            )
         }
     }
 
-    fun loadFolder(path: String) {
+    fun onFolderPicked(value: String) {
+        val name = displayNameForPickedFolder(value) ?: value
+        saveSourceFolder(value, name)
+        load(
+            source = mediaSourceForPickedLocation(value),
+            displayName = name,
+            fromSaved = false,
+        )
+    }
+
+    private fun load(source: MediaSource, displayName: String, fromSaved: Boolean) {
         viewModelScope.launch {
             _state.update {
                 it.copy(
-                    folderPath = path,
+                    folderName = displayName,
                     isLoading = true,
                     errorMessage = null,
                 )
             }
 
-            val source = MediaSource.Folder(path)
             mediaRepository.loadMedia(
                 source = source,
                 includeImages = true,
@@ -51,6 +72,7 @@ class SourceViewModel(
                     )
                 }
             }.onFailure { error ->
+                if (fromSaved) clearSourceFolder()
                 _state.update {
                     it.copy(
                         mediaCount = 0,

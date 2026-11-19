@@ -3,12 +3,10 @@ package id.neotica.removify.platform
 import id.neotica.removify.domain.model.MediaItem
 import id.neotica.removify.domain.model.MediaSource
 import id.neotica.removify.domain.model.MediaType
+import id.neotica.removify.utils.MediaClassification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-
-private val imageExtensions = setOf("jpg", "jpeg", "png", "webp", "gif", "bmp", "heic")
-private val videoExtensions = setOf("mp4", "mov", "m4v", "mkv", "webm", "avi")
 
 actual suspend fun scanMedia(
     source: MediaSource,
@@ -18,6 +16,7 @@ actual suspend fun scanMedia(
     runCatching {
         val folder = when (source) {
             MediaSource.Gallery -> error("Gallery source is not supported on desktop")
+            is MediaSource.Tree -> error("Tree sources are not supported on desktop")
             is MediaSource.Folder -> File(source.path)
         }
         require(folder.isDirectory) { "Folder not found: ${folder.absolutePath}" }
@@ -32,12 +31,9 @@ actual suspend fun scanMedia(
             }
             .filter { it.isFile && !it.isHidden }
             .mapNotNull { file ->
-                val extension = file.extension.lowercase()
-                val type = when {
-                    extension in imageExtensions && includeImages -> MediaType.IMAGE
-                    extension in videoExtensions && includeVideos -> MediaType.VIDEO
-                    else -> null
-                } ?: return@mapNotNull null
+                val type = MediaClassification.classify(file.name, null) ?: return@mapNotNull null
+                if (type == MediaType.IMAGE && !includeImages) return@mapNotNull null
+                if (type == MediaType.VIDEO && !includeVideos) return@mapNotNull null
 
                 MediaItem(
                     id = file.absolutePath,

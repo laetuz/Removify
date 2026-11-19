@@ -9,4 +9,7 @@ sealed interface MediaSource {
 
     @Serializable
     data class Folder(val path: String) : MediaSource
+
+    @Serializable
+    data class Tree(val treeUri: String) : MediaSource
 }

@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import id.neotica.removify.domain.model.SwipeDecision
 import id.neotica.removify.platform.installPlatformKeyDispatcher
+import id.neotica.removify.platform.isTrashCommitSupported
 import id.neotica.removify.ui.components.ButtonBasic
 import id.neotica.removify.ui.components.DarkBackground
 import id.neotica.removify.ui.components.DarkPrimary
@@ -175,9 +176,17 @@ fun SwipeDeckView(
             onDismissRequest = viewModel::dismissFinishDialog,
             title = { Text(text = "Move to Trash?") },
             text = {
-                Text(
-                    text = "${state.trashedCount} items (${formatBytes(state.trashBytes)}) will be moved to the Removify Trash. You can restore them anytime.",
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "${state.trashedCount} items (${formatBytes(state.trashBytes)}) will be moved to the Removify Trash. You can restore them anytime.",
+                    )
+                    if (!isTrashCommitSupported) {
+                        Text(
+                            text = "Android trash isn't available yet - trashed items won't be moved.",
+                            color = NegativePrimary,
+                        )
+                    }
+                }
             },
             confirmButton = {
                 TextButton(onClick = viewModel::confirmFinish) {
