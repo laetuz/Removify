@@ -152,6 +152,16 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Removify"
             packageVersion = desktopPackageVersion
+
+            macOS {
+                iconFile.set(rootProject.file("media/removify.icns"))
+            }
+            windows {
+                iconFile.set(rootProject.file("media/removify.ico"))
+            }
+            linux {
+                iconFile.set(rootProject.file("media/removify.png"))
+            }
         }
     }
 }
