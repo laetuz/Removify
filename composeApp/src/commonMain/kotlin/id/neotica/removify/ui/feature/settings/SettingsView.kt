@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import id.neotica.removify.ui.components.NeoCard
 import id.neotica.removify.ui.components.TransparentText40
+import id.neotica.removify.ui.feature.datefix.DateFixCard
 import id.neotica.removify.ui.feature.export.DcimExportCard
 import id.neotica.removify.utils.Constants
 
@@ -34,6 +35,8 @@ fun SettingsView() {
         )
 
         DcimExportCard()
+
+        DateFixCard()
 
         NeoCard(modifier = Modifier.fillMaxWidth()) {
             Column(

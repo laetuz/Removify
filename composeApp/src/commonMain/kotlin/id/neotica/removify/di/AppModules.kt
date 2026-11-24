@@ -7,6 +7,7 @@ import id.neotica.removify.domain.repository.MediaRepository
 import id.neotica.removify.domain.repository.TrashRepository
 import id.neotica.removify.session.SessionStore
 import id.neotica.removify.ui.feature.deck.SwipeDeckViewModel
+import id.neotica.removify.ui.feature.datefix.DateFixViewModel
 import id.neotica.removify.ui.feature.source.SourceViewModel
 import id.neotica.removify.ui.feature.trash.TrashViewModel
 import org.koin.core.context.startKoin
@@ -23,6 +24,7 @@ val appModule = module {
     viewModelOf(::SourceViewModel)
     viewModelOf(::SwipeDeckViewModel)
     viewModelOf(::TrashViewModel)
+    viewModelOf(::DateFixViewModel)
 }
 
 val appModules = arrayOf(appModule, platformModule)
