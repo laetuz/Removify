@@ -47,6 +47,37 @@ base64 -w0 release.keystore
 Paste the output into the `RELEASE_KEYSTORE_BASE64` secret. Never commit the keystore
 (`*.keystore` and `*.jks` are gitignored).
 
+## Debug signing for update-compatible APKs
+
+Debug APKs built locally and in CI only update each other when they share the same
+signing key. GitHub runners generate a throwaway debug keystore per run, so both
+workflows seed a stable one:
+
+1. Add the secret `KEYSTORE_BASE64` with the base64 of the debug keystore used on your
+   machine (the same file Gradle uses, usually `~/.android/debug.keystore`):
+
+   ```bash
+   # macOS
+   base64 -i ~/.android/debug.keystore | pbcopy
+
+   # Linux
+   base64 -w0 ~/.android/debug.keystore
+   ```
+
+2. `ci.yml` and `release.yml` write it to `$HOME/.android/debug.keystore` before
+   building. Debug signing uses the standard credentials (`androiddebugkey` / `android`),
+   so no alias or password secrets are needed.
+3. The release workflow refuses to publish an Android artifact when neither
+   `KEYSTORE_BASE64` nor `RELEASE_KEYSTORE_BASE64` is configured.
+
+Notes:
+
+- Use the exact same keystore locally; otherwise local and CI APKs still reject each
+  other.
+- Switching an installed app to a different signing key requires one uninstall (app data
+  is lost). After switching, updates install in place.
+- The `RELEASE_KEYSTORE_BASE64` secrets above remain available for signed release builds.
+
 ## macOS notes
 
 The DMG is not code-signed or notarized yet, so Gatekeeper shows a warning on other
