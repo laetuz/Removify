@@ -3,6 +3,24 @@
 All notable changes to Removify are documented here. Format follows Keep a Changelog;
 versions use semantic versioning.
 
+## [0.4.0] - 2026-11-24
+
+### Added
+
+- "Fix media dates" utility in Settings for desktop folders and the Android gallery:
+  filename-date parsing (WhatsApp, Pixel, IMG/VID, screenshots), a required dry-run
+  preview, a "skip already matching" toggle, progress/cancel, and a per-file report.
+- Desktop updates file Modified and Created timestamps (Created via `SetFile` on macOS);
+  Android updates MediaStore `DATE_TAKEN`/`DATE_MODIFIED` after a single system write
+  prompt.
+- New app icon across Android (adaptive launcher icon), macOS (`icns`), Windows (`ico`),
+  and Linux (png).
+
+### Notes
+
+- Android SAF folders and EXIF writes are not part of this release.
+- Android date fixing was verified by unit tests and dry runs only; no on-device test yet.
+
 ## [0.3.2] - 2026-11-24
 
 ### Fixed
