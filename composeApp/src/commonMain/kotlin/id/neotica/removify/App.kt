@@ -61,6 +61,7 @@ fun App() {
                             when (key) {
                                 Screen.Source -> SourceView(
                                     onContinue = { backStack.add(Screen.Setup) },
+                                    onResumeSession = { backStack.add(Screen.Deck) },
                                 )
 
                                 Screen.Trash -> TrashView()

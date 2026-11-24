@@ -28,6 +28,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun SourceView(
     onContinue: () -> Unit,
+    onResumeSession: () -> Unit,
     viewModel: SourceViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -74,6 +75,14 @@ fun SourceView(
                     )
                 }
 
+                if (state.resumeAvailable) {
+                    Text(
+                        text = "Session in progress - ${state.resumeDecided} of ${state.mediaCount} reviewed",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+
                 state.errorMessage?.let { message ->
                     Text(
                         text = message,
@@ -88,8 +97,15 @@ fun SourceView(
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     ButtonBasic(text = "Choose folder", onClick = folderPicker)
-                    if (state.mediaCount > 0) {
+                    if (state.mediaCount > 0 && !state.resumeAvailable) {
                         ButtonBasic(text = "Continue", onClick = onContinue)
+                    }
+                }
+
+                if (state.resumeAvailable) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        ButtonBasic(text = "Resume", onClick = onResumeSession)
+                        ButtonBasic(text = "Start over", onClick = viewModel::startOver)
                     }
                 }
             }

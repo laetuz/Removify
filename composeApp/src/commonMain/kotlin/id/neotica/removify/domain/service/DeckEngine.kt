@@ -4,16 +4,44 @@ import id.neotica.removify.domain.model.MediaItem
 import id.neotica.removify.domain.model.SessionSummary
 import id.neotica.removify.domain.model.SwipeDecision
 
-class DeckEngine(items: List<MediaItem>) {
+data class DeckSnapshot(
+    val decisions: Map<String, SwipeDecision>,
+    val skipCounts: Map<String, Int>,
+    val queue: List<String>,
+)
+
+class DeckEngine(
+    items: List<MediaItem>,
+    initialDecisions: Map<String, SwipeDecision> = emptyMap(),
+    initialSkipCounts: Map<String, Int> = emptyMap(),
+    initialQueue: List<String>? = null,
+) {
 
     private data class DecisionRecord(val item: MediaItem, val decision: SwipeDecision)
 
     private val allItems = items
     private val itemsById = items.associateBy { it.id }
-    private val queue = ArrayDeque(items)
+    private val queue = ArrayDeque<MediaItem>()
     private val decisions = LinkedHashMap<String, SwipeDecision>()
     private val skipCounts = mutableMapOf<String, Int>()
     private val undoStack = ArrayDeque<DecisionRecord>()
+
+    init {
+        initialDecisions.forEach { (id, decision) ->
+            if (itemsById.containsKey(id)) decisions[id] = decision
+        }
+        initialSkipCounts.forEach { (id, count) ->
+            if (itemsById.containsKey(id) && id !in decisions && count > 0) {
+                skipCounts[id] = count
+            }
+        }
+
+        if (initialQueue != null) {
+            initialQueue.forEach { id -> itemsById[id]?.let { queue.addLast(it) } }
+        } else {
+            queue.addAll(items.filter { it.id !in decisions && (skipCounts[it.id] ?: 0) < 2 })
+        }
+    }
 
     val total: Int get() = allItems.size
     val current: MediaItem? get() = queue.firstOrNull()
@@ -61,6 +89,12 @@ class DeckEngine(items: List<MediaItem>) {
     }
 
     fun trashItems(): List<MediaItem> = allItems.filter { decisions[it.id] == SwipeDecision.TRASH }
+
+    fun snapshot(): DeckSnapshot = DeckSnapshot(
+        decisions = decisions.toMap(),
+        skipCounts = skipCounts.toMap(),
+        queue = queue.map { it.id },
+    )
 
     fun summary(): SessionSummary {
         val kept = decisions.values.count { it == SwipeDecision.KEEP }

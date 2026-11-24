@@ -5,4 +5,6 @@ data class SourceUiState(
     val mediaCount: Int = 0,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val resumeAvailable: Boolean = false,
+    val resumeDecided: Int = 0,
 )

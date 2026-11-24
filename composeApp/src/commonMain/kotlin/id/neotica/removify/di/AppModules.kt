@@ -1,6 +1,7 @@
 package id.neotica.removify.di
 
 import id.neotica.removify.data.MediaRepositoryImpl
+import id.neotica.removify.data.SessionSnapshotRepository
 import id.neotica.removify.data.TrashRepositoryImpl
 import id.neotica.removify.domain.repository.MediaRepository
 import id.neotica.removify.domain.repository.TrashRepository
@@ -17,6 +18,7 @@ import org.koin.dsl.module
 val appModule = module {
     singleOf(::MediaRepositoryImpl).bind(MediaRepository::class)
     singleOf(::TrashRepositoryImpl).bind(TrashRepository::class)
+    singleOf(::SessionSnapshotRepository)
     singleOf(::SessionStore)
     viewModelOf(::SourceViewModel)
     viewModelOf(::SwipeDeckViewModel)
