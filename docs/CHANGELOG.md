@@ -3,6 +3,19 @@
 All notable changes to Removify are documented here. Format follows Keep a Changelog;
 versions use semantic versioning.
 
+## [0.3.1] - 2026-11-24
+
+### Fixed
+
+- CI debug APKs are now signed with the explicit seeded keystore
+  (`DEBUG_KEYSTORE_FILE`) instead of whatever debug key the runner generated. This
+  restores update compatibility between local and CI builds.
+
+### Notes
+
+- Supersedes the v0.3.0 Android APK, which was signed with a throwaway runner key.
+  Uninstall v0.3.0 before installing v0.3.1.
+
 ## [0.3.0] - 2026-11-24
 
 ### Added
