@@ -528,3 +528,52 @@ Known warts to *not* copy: dual Ktor clients, unused refresh token, god-composab
 | 2026-10-21 | Base = NeostoreAdmin single module; media/platform code from OrpheumUploader | concept |
 | 2026-10-21 | Sources: Android full gallery + desktop folder picker | concept |
 | 2026-10-21 | Videos: thumbnail + tap-to-play inline | concept |
+| 2026-11-21 | Bring `fix_media_dates.py` functionality in-app for Desktop & Android with dry-run-first safety and platform-appropriate metadata handling | roadmap |
+
+---
+
+## 19. Planned features (post-v0.2.0)
+
+> **Current baseline (`v0.2.0`):** Desktop swipe deck + trash workflow, Android DCIM export (SAF + SHA-256 verified copy + photo/video filters), and Android SAF folder picker on Review are shipped (see `docs/CHANGELOG.md`).
+
+### 19.1 Fix Media Dates (Desktop & Android)
+
+**Motivation:** Messaging apps such as WhatsApp strip EXIF metadata and files copied between devices often lose their original timestamps, causing galleries to sort them by copy date instead of capture date. The repo currently includes a macOS-only prototype script (`fix_media_dates.py` using `os.utime` + Xcode's `SetFile`). This feature brings that workflow into Removify for both Desktop and Android without requiring Python or external CLI tools.
+
+#### Supported filename patterns
+- **Initial pattern (from `fix_media_dates.py`):** `^(?:IMG|VID|null)-(\d{8})-WA\d+` (WhatsApp images/videos).
+- **Extensible parser:** Pure `FilenameDateParser` in `commonMain/utils/` designed to add additional patterns later (e.g., `PXL_YYYYMMDD_HHMMSS`, `IMG_YYYYMMDD_HHMMSS`, `Screenshot_YYYYMMDD`).
+- When only a date (`YYYYMMDD`) is present, default time to `12:00:00` local time; use the exact time when `HHMMSS` is present.
+
+#### UX flow
+- Hosted as a utility card in **Settings** alongside `DcimExportCard` (reusing the same progress/report card conventions):
+  1. **Select target:** Desktop folder picker (or last picked folder) / Android local gallery (`MediaStore`) or SAF folder.
+  2. **Dry-run preview (required before apply):** Scans files and displays matched count, skipped/non-matching count, and already-dated count.
+  3. **Options:** Toggle "Skip files with existing EXIF date" (default: on).
+  4. **Apply:** Confirmation dialog → progress bar with cancel support → summary report (updated, skipped, failed items).
+
+#### Platform behavior matrix
+
+| Target | Timestamp / Metadata Update | Constraints & Notes |
+|--------|-----------------------------|---------------------|
+| **Desktop (JVM)** | `Files.setLastModifiedTime` on all OSes; creation time via `BasicFileAttributeView` (Windows) or `SetFile` fallback (macOS); optional EXIF `DateTimeOriginal` for JPEGs. | Direct filesystem access; no extra permissions required. |
+| **Android (`MediaStore` / Local Gallery)** | Request batch write permission via `MediaStore.createWriteRequest` (API 30+), then update `DATE_TAKEN` & `DATE_MODIFIED` via `ContentResolver.update` and write EXIF `DateTimeOriginal` / `DateTimeDigitized` for JPEGs via `androidx.exifinterface`. | Writing EXIF ensures dates survive gallery rescans and file copies. MP4 `mvhd` atom patching is deferred to a later iteration (`MediaStore.DATE_TAKEN` covers gallery sorting in v1). |
+| **Android (SAF / USB / SD Card)** | Write EXIF `DateTimeOriginal` on supported image formats via `ParcelFileDescriptor` / `OutputStream`. | Android SAF (`DocumentFile`) does not expose filesystem `mtime` modification; clearly communicated in the UI. |
+
+#### Architecture fit
+- `utils/FilenameDateParser.kt` (+ unit tests in `commonTest`).
+- `domain/model/`: `DateFixPreview.kt`, `DateFixProgress.kt`, `DateFixReport.kt`.
+- `domain/repository/MediaDateFixRepository.kt`.
+- `platform/MediaDateFixer.kt` (`expect`/`actual` per platform).
+- `ui/feature/datefix/`: `DateFixCard.kt`, `DateFixViewModel.kt`, `DateFixUiState.kt`.
+
+#### Safety & guardrails
+- Dry-run preview is always shown before mutating any file.
+- Hidden files and non-matching filenames are never modified.
+- Per-file failures are collected and reported without aborting the batch.
+
+### 19.2 Remaining core roadmap items
+
+- **Android gallery (`MediaStore`) scanning for Review:** Load local device photos/videos directly in the swipe deck without requiring SAF folder selection.
+- **Android move-to-trash:** Implement `Pictures/Removify/Trash` and `Movies/Removify/Trash` copy + `MediaStore.createDeleteRequest` + rollback on cancel (Section 4.2), flipping `isTrashCommitSupported = true` on Android.
+- **Android inline video playback:** Upgrade Android video cards from `ACTION_VIEW` system player to inline Media3 ExoPlayer.
