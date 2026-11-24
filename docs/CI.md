@@ -64,9 +64,12 @@ workflows seed a stable one:
    base64 -w0 ~/.android/debug.keystore
    ```
 
-2. `ci.yml` and `release.yml` write it to `$HOME/.android/debug.keystore` before
-   building. Debug signing uses the standard credentials (`androiddebugkey` / `android`),
-   so no alias or password secrets are needed.
+2. `ci.yml` and `release.yml` decode it to `$RUNNER_TEMP/debug.keystore` and export
+   `DEBUG_KEYSTORE_FILE`, which `composeApp/build.gradle.kts` uses to configure the
+   debug signing config explicitly. Debug signing uses the standard credentials
+   (`androiddebugkey` / `android`), so no alias or password secrets are needed.
+   (`KEYSTORE_BASE64` is decoded to a known path because AGP does not reliably pick up
+   `$HOME/.android/debug.keystore` on CI runners.)
 3. Both workflows then verify the seeded keystore's SHA-256 fingerprint
    (`FA:BB:6A:8E:57:47:2B:B6:54:01:7D:6C:2F:C5:20:C2:D1:06:A3:0A:88:71:33:BC:35:F0:4C:69:AE:0C:A8:0F`)
    and fail when it differs, so CI cannot silently produce APKs that won't update local installs.

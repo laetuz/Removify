@@ -13,6 +13,9 @@ val hasReleaseSigning = !keystoreFile.isNullOrBlank() &&
     !releaseKeyAlias.isNullOrBlank() &&
     !releaseKeyPassword.isNullOrBlank()
 
+val debugKeystoreFile = System.getenv("DEBUG_KEYSTORE_FILE")
+val hasDebugKeystore = !debugKeystoreFile.isNullOrBlank()
+
 val osName = System.getProperty("os.name").lowercase()
 val osArch = System.getProperty("os.arch")
 val fxPlatform = when {
@@ -93,6 +96,14 @@ android {
     }
 
     signingConfigs {
+        if (hasDebugKeystore) {
+            create("sharedDebug") {
+                storeFile = file(debugKeystoreFile!!)
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
         if (hasReleaseSigning) {
             create("release") {
                 storeFile = file(keystoreFile!!)
@@ -104,6 +115,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            if (hasDebugKeystore) {
+                signingConfig = signingConfigs.getByName("sharedDebug")
+            }
+        }
         release {
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
