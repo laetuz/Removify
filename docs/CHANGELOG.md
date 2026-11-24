@@ -3,6 +3,29 @@
 All notable changes to Removify are documented here. Format follows Keep a Changelog;
 versions use semantic versioning.
 
+## [0.3.0] - 2026-11-24
+
+### Added
+
+- Session persistence: swipe decisions, skip counts, and deck position are saved to
+  `session.json` in app data after every action.
+- Review screen offers "Resume session" (X of Y reviewed) and "Start over" after the
+  app restarts; resuming lands back on the saved card.
+- CI seeds a stable debug keystore from the `KEYSTORE_BASE64` secret and verifies its
+  SHA-256 fingerprint, so local and CI debug APKs share one signature.
+
+### Changed
+
+- Review no longer silently forgets a saved folder; if it cannot be reopened it shows a
+  "choose it again" message.
+- Deck restore drops missing files and starts with an empty undo history.
+
+### Notes
+
+- Android APKs from this release are signed with the shared debug key. Upgrading from
+  v0.2.0 requires one uninstall (the v0.2.0 CI APK used a throwaway debug key).
+- Android move-to-trash remains stubbed and is flagged in the finish dialog/summary.
+
 ## [0.2.0] - 2026-11-19
 
 ### Added
