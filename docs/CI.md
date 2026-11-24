@@ -67,7 +67,10 @@ workflows seed a stable one:
 2. `ci.yml` and `release.yml` write it to `$HOME/.android/debug.keystore` before
    building. Debug signing uses the standard credentials (`androiddebugkey` / `android`),
    so no alias or password secrets are needed.
-3. The release workflow refuses to publish an Android artifact when neither
+3. Both workflows then verify the seeded keystore's SHA-256 fingerprint
+   (`FA:BB:6A:8E:57:47:2B:B6:54:01:7D:6C:2F:C5:20:C2:D1:06:A3:0A:88:71:33:BC:35:F0:4C:69:AE:0C:A8:0F`)
+   and fail when it differs, so CI cannot silently produce APKs that won't update local installs.
+4. The release workflow refuses to publish an Android artifact when neither
    `KEYSTORE_BASE64` nor `RELEASE_KEYSTORE_BASE64` is configured.
 
 Notes:

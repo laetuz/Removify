@@ -39,6 +39,19 @@ jobs:
             echo "KEYSTORE_BASE64 is not set; this run will use a throwaway debug key."
           fi
 
+      - name: Verify debug keystore
+        run: |
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            echo "No debug keystore seeded; skipping verification."
+            exit 0
+          fi
+          FINGERPRINT=$(keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android 2>/dev/null | awk -F': ' '/SHA256:/{print $2; exit}' | tr -d ' ')
+          echo "Debug keystore SHA-256: $FINGERPRINT"
+          if [ "$FINGERPRINT" != "FA:BB:6A:8E:57:47:2B:B6:54:01:7D:6C:2F:C5:20:C2:D1:06:A3:0A:88:71:33:BC:35:F0:4C:69:AE:0C:A8:0F" ]; then
+            echo "KEYSTORE_BASE64 does not match the local debug keystore." >&2
+            exit 1
+          fi
+
       - name: Test & build APK
         run: ./gradlew :composeApp:allTests :composeApp:assembleDebug --no-configuration-cache --no-build-cache
 
