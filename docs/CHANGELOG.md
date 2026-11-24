@@ -3,6 +3,13 @@
 All notable changes to Removify are documented here. Format follows Keep a Changelog;
 versions use semantic versioning.
 
+## [0.3.2] - 2026-11-24
+
+### Fixed
+
+- Swipe deck, session setup, and summary screens now respect system-window safe areas
+  (status bar, display cutout, navigation/gesture bar) on edge-to-edge Android devices.
+
 ## [0.3.1] - 2026-11-24
 
 ### Fixed

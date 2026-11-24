@@ -1,7 +1,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 val appVersion = (System.getenv("GITHUB_REF_NAME") ?: "0.1.0").removePrefix("v")
-val desktopPackageVersion = "1.0.4"
+val desktopPackageVersion = "1.0.5"
 val buildNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
 
 val keystoreFile = System.getenv("RELEASE_KEYSTORE_FILE")
